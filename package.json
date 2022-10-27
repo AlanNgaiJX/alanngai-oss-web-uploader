@@ -1,6 +1,6 @@
 {
   "name": "alanngai-oss-web-uploader",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "oss web uploader",
   "main": "dist/alanngai-oss-web-uploader.js",
   "scripts": {
