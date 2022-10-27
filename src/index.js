@@ -2,6 +2,7 @@ import CryptoJS from "./crypto-js";
 
 class Uploader {
   constructor(signatureApi) {
+    this.countTask = 0; //所有的任务数 
     this.concurrencyCount = 1; //并发数
     this.waitingQueue = []; // 待上传队列
     this.uploadingQueue = []; // 上传中队列
@@ -54,6 +55,7 @@ class Uploader {
     eventType
   ) {
     const _this = this;
+    _this.countTask += files.length;
     _this.uploading = true; // 正在上传
     _this.loadedBuffer = 0;
     _this.bufferSpeed = 0;
@@ -368,6 +370,7 @@ class Uploader {
     Uploader.removeOutOf(this.uploadingQueue, task);
     Uploader.removeOutOf(this.uploadedQueue, task);
     Uploader.removeOutOf(this.errorQueue, task);
+    this.countTask -=1;
   }
 
   // 从某个队列移出某项(id)
