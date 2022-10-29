@@ -2,13 +2,13 @@ import CryptoJS from "./crypto-js";
 
 class Uploader {
   constructor(signatureApi) {
-    this.countTask = 0; //所有的任务数 
+    this.countTask = 0; //所有的任务数
     this.concurrencyCount = 1; //并发数
     this.waitingQueue = []; // 待上传队列
     this.uploadingQueue = []; // 上传中队列
     this.errorQueue = []; // 上传失败队列
     this.uploadedQueue = []; // 上传成功队列
-    this.choosing = false; // 是否正在选择图片
+    this.choosing = false; // 是否正在选择图片 TODO
     this.uploading = false; // 是否正在上传
     this.isCheckingQueue = false;
     this.taskId = 0;
@@ -34,26 +34,24 @@ class Uploader {
 
     /* 回调 */
     this.onComputedId = null; // 单个文件初始化成功事件
+    this.onComputedMd5 = null; // 单个文件计算 md5
     this.onSuccess = null; // 单个文件成功事件
     this.onError = null; // 单个文件失败事件
     this.onAllFinish = null; // 全部上传已执行事件（忽略失败任务）
     this.onAllSuccess = null; // 全部上传成功事件
     this.onProgress = null; // 进度事件
-    this.eventType = null; // 上传的oss目录
   }
 
-  uploadFiles(
-    {
-      files,
-      onComputedId,
-      onComputedMd5,
-      onProgress,
-      onSuccess,
-      onAllSuccess,
-      onError,
-    },
-    eventType
-  ) {
+  // 【 上传文件 】
+  uploadFiles({
+    files,
+    onComputedId,
+    onComputedMd5,
+    onProgress,
+    onSuccess,
+    onAllSuccess,
+    onError,
+  }) {
     const _this = this;
     _this.countTask += files.length;
     _this.uploading = true; // 正在上传
@@ -65,7 +63,6 @@ class Uploader {
     _this.onError = onError;
     _this.onAllSuccess = onAllSuccess;
     _this.onProgress = onProgress;
-    _this.eventType = eventType;
 
     let i = 0;
 
@@ -312,12 +309,12 @@ class Uploader {
     }
   }
 
-  // 打开或关闭调试, 该调试开关能使上传任务失败
+  // 【 打开或关闭调试, 该调试开关能使上传任务失败 】
   toggleDebug() {
     this.debug = !this.debug;
   }
 
-  // 重试所有失败任务
+  // 【 重试所有失败任务 】
   retryErrorQueue() {
     while (this.errorQueue.length) {
       const uploadTask = this.errorQueue.shift();
@@ -338,7 +335,7 @@ class Uploader {
     }
   }
 
-  // 重试单个失败任务
+  // 【 重试单个失败任务 】
   retryErrorTaskById(taskId) {
     const uploadTaskIndex = this.errorQueue.findIndex(
       (item) => item.id === Number(taskId)
@@ -363,14 +360,14 @@ class Uploader {
     }
   }
 
-  // 从任何队列移除某一任务
+  // 【 从任何队列移除某一任务 】
   delTaskById(taskId) {
     const task = { id: Number(taskId) };
     Uploader.removeOutOf(this.waitingQueue, task);
     Uploader.removeOutOf(this.uploadingQueue, task);
     Uploader.removeOutOf(this.uploadedQueue, task);
     Uploader.removeOutOf(this.errorQueue, task);
-    this.countTask -=1;
+    this.countTask -= 1;
   }
 
   // 从某个队列移出某项(id)
