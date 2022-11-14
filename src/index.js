@@ -52,6 +52,8 @@ class Uploader {
     onAllSuccess,
     onError,
   }) {
+    files = Array.from(files); // 很重要，FileList 会被 fileReader清空，转为数组就没事
+
     const _this = this;
     _this.countTask += files.length;
     _this.uploading = true; // 正在上传
@@ -115,7 +117,7 @@ class Uploader {
     }
 
     // 装配上传队列
-    function initQueue() {
+    async function initQueue() {
       const file = files[i];
       /* 任务初始化 */
       const uploadTask = {
@@ -130,14 +132,13 @@ class Uploader {
       _this.taskId++;
 
       /* 计算md5 */
-      const chunkedBlob = Uploader.chunckFileToBlob(file);
-      const fr = new FileReader();
-      fr.onload = () => {
-        uploadTask.md5 = Uploader.getFileMd5(fr.result, file);
-        onUploadComputedMd5(uploadTask);
-      };
-      fr.readAsDataURL(chunkedBlob);
-
+      try {
+        uploadTask.md5 = await Uploader.computeMd5(file);
+      } catch (error) {
+        Uploader.removeOutOf(_this.waitingQueue, uploadTask);
+        onUploadError(uploadTask);
+      }
+      
       i++;
       judge();
     }
@@ -378,6 +379,20 @@ class Uploader {
         list.splice(i, 1);
       }
     }
+  }
+
+  static computeMd5(_file) {
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => {
+        resolve(Uploader.getFileMd5(fr.result, _file));
+      };
+
+      fr.onerror = () => {
+        reject();
+      };
+      fr.readAsDataURL(_file);
+    });
   }
 
   // 计算md5
